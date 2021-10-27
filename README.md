@@ -23,6 +23,9 @@ Existem alguns pontos em que se pode realizar a aplicação de interfaces, inver
 ## Instruções de instalação Docker
 No diretório da aplicação clonada, execute os comandos:
 ```
+// Copiar o arquivo .env.example e renomear para .env
+$ cp .env.example .env
+
 // Build dos containers
 $ docker-compose up -d --build
 
@@ -39,47 +42,33 @@ DOCKER_NGINX_PORT=8080
 ```
 
 ## Rotas
-- Criação de hashes:
-```
-POST /api/hashes
-  body: {
-      "input": string,
-      "block_number": integer|digit
-  },
-  response: {
-      "hash": "0000ee49598b2422d00c394ceb4f4ba0fa7e",
-      "key": "el5PzKoV",
-      "attempts": 12
-  }
-```
-
 - Busca de registros
 ```
 GET /api/hashes/{<optional page>}
-  query: {
-      // Filtro por coluna da tabela
-      filter[<table column>]=<string>
-    
-      // Filtra o registro com número de tentativas menor do que o informado
-      filter[attempts_less_than]=<integer|digit>
-  },
-  response: {
-      "data": [
-          {
-              "batch": {
-                  "date": "2021-10-27 12:50:17.000000",
-                  "timezone_type": 3,
-                  "timezone": "UTC"
-              },
-              "block_number": 2,
-              "input": "0000ff249da24dc89cbc69b6892e520009fd",
-              "hash": "0000e33c25d366d111c9bc57c7bf5da4370c"
-          }
-    ],
-    "total": 1,
-    "per_page": 10,
-    "current_page": 1,
-    "last_page": 1
+    query: {
+        // Filtro opcional por coluna da tabela
+        filter[<table column>]=<string>
+        
+        // Filtra o registro com número de tentativas menor do que o informado
+        filter[attempts_less_than]=<attempts>
+    },
+    response: {
+        "data": [
+            {
+                "batch": {
+                    "date": "2021-10-27 12:50:17.000000",
+                    "timezone_type": 3,
+                    "timezone": "UTC"
+                },
+                "block_number": 2,
+                "input": "0000ff249da24dc89cbc69b6892e520009fd",
+                "hash": "0000e33c25d366d111c9bc57c7bf5da4370c"
+            }
+        ],
+        "total": 1,
+        "per_page": 10,
+        "current_page": 1,
+        "last_page": 1
   }
 ```
 
