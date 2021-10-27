@@ -59,11 +59,7 @@ class CreateHashCommand extends Command
                 $decodedPayload = $response->toArray();
                 $inputValue = $decodedPayload['hash'];
                 
-                if ($totalRequest > 10) {
-                    usleep(6250000);
-                } else {
-                    usleep(1000000);
-                }
+                usleep($_ENV['CREATE_HASH_SLEEP_TIME'] ?? 6250000);
             }
 
             return Command::SUCCESS;
