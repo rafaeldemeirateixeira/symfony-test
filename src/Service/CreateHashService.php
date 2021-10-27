@@ -37,7 +37,7 @@ class CreateHashService
             throw new TooManyRequestsHttpException(60, 'Too Many Attempts.');
         }
 
-        //TODO: Gerar gerar key
+        //TODO: Gerar key com número de tentativas
         $key = $this->keyGenerate();
         $md5 = md5(u($data['input'])->append($key));
         
@@ -46,7 +46,7 @@ class CreateHashService
             'hash' => u('0000')->append($md5),
             'key' => $key,
             'block_number' => $data['block_number'],
-            'attempts' => 12,
+            'attempts' => 1,
             'ip' => $ip
         ];
 
