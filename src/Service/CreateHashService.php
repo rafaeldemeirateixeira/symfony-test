@@ -6,7 +6,10 @@ use App\Entity\Hashes;
 use App\Repository\HashesRepository;
 use DateInterval;
 use DateTime;
+
+use function Symfony\Component\DependencyInjection\Loader\Configurator\env;
 use function Symfony\Component\String\u;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 
 class CreateHashService
@@ -14,12 +17,18 @@ class CreateHashService
     /** @var HashesRepository */
     private HashesRepository $hashesRepository;
 
+    /** @var ContainerBagInterface */
+    private ContainerBagInterface $params;
+
     /**
      * @param HashesRepository $hashesRepository
      */
-    public function __construct(HashesRepository $hashesRepository)
-    {
+    public function __construct(
+        HashesRepository $hashesRepository,
+        ContainerBagInterface $params
+    ) {
         $this->hashesRepository = $hashesRepository;
+        $this->params = $params;
     }
 
     /**
@@ -37,16 +46,18 @@ class CreateHashService
             throw new TooManyRequestsHttpException(60, 'Too Many Attempts.');
         }
 
-        //TODO: Gerar key com número de tentativas
-        $key = $this->keyGenerate();
-        $md5 = md5(u($data['input'])->append($key));
+        $candidateKeys = $this->candidateKeys($this->params->get('hashes.total_candidate_keys'));
+        $selectedKey = array_rand($candidateKeys, 1);
+        $key = $candidateKeys[$selectedKey];
+        $generatedmMd5 = md5(u($data['input'])->append($key));
+        $attempts = $this->searchKey($data['input'], $key, $generatedmMd5, $candidateKeys);
         
         $hash = [
             'input' => $data['input'],
-            'hash' => u('0000')->append($md5),
+            'hash' => u('0000')->append($generatedmMd5),
             'key' => $key,
             'block_number' => $data['block_number'],
-            'attempts' => 1,
+            'attempts' => $attempts,
             'ip' => $ip
         ];
 
@@ -69,5 +80,40 @@ class CreateHashService
         }
 
         return $randomString;
+    }
+
+    /**
+     * @param int $total
+     * @return array
+     */
+    public function candidateKeys(int $total)
+    {
+        $canditades = 0;
+        $array = [];
+        while ($canditades <= $total) {
+            $array[] = $this->keyGenerate();
+            $canditades++;
+        }
+
+        return $array;
+    }
+
+    /**
+     * @param string $input
+     * @param string $key
+     * @param string $hash
+     * @return int
+     */
+    public function searchKey(string $input, string $key, string $hash, array $candidateKeys): int
+    {
+        $attempts = 0;
+        foreach ($candidateKeys as $candidateKey) {
+            if (md5(u($input)->append($candidateKey)) == $hash) {
+                break;
+            }
+            $attempts++;
+        }
+
+        return $attempts;
     }
 }

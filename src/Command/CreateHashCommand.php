@@ -7,6 +7,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CreateHashCommand extends Command
@@ -20,13 +21,20 @@ class CreateHashCommand extends Command
     /** @var HttpClientInterface */
     private HttpClientInterface $client;
 
+    /** @var ContainerBagInterface */
+    private ContainerBagInterface $params;
+
     /**
      * @param HttpClientInterface $client
+     * @param ContainerBagInterface $params
      */
-    public function __construct(HttpClientInterface $client)
-    {
+    public function __construct(
+        HttpClientInterface $client,
+        ContainerBagInterface $params
+    ) {
         parent::__construct();
         $this->client = $client;
+        $this->params = $params;
     }
 
     /**
@@ -59,7 +67,7 @@ class CreateHashCommand extends Command
                 $decodedPayload = $response->toArray();
                 $inputValue = $decodedPayload['hash'];
                 
-                usleep($_ENV['CREATE_HASH_SLEEP_TIME'] ?? 6250000);
+                usleep($this->params->get('hashes.create_sleep_time') ?? 6250000);
             }
 
             return Command::SUCCESS;
