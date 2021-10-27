@@ -1,0 +1,61 @@
+version: '3'
+services:
+  brasiltecpar_php:
+    build:
+      context: .
+      dockerfile: docker/php/dev.Dockerfile
+    image: brasiltecpar/php
+    env_file:
+      - .env
+    container_name: brasiltecpar_php
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+    depends_on:
+      - brasiltecpar_postgres
+    networks:
+      - brasiltecpar-network
+
+  brasiltecpar_nginx:
+    image: nginx:1.13
+    env_file:
+      - .env
+    container_name: brasiltecpar_nginx
+    restart: unless-stopped
+    ports:
+      - "${DOCKER_NGINX_PORT}:80"
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/development.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - brasiltecpar_php
+    networks:
+      - brasiltecpar-network
+
+  brasiltecpar_postgres:
+    image: postgres:13.2
+    env_file:
+      - .env
+    container_name: brasiltecpar_postgres
+    restart: unless-stopped
+    tty: true
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - brasiltecpar_data:/var/lib/postgresql/data
+    ports:
+      - ${DOCKER_DB_PORT}:5432
+    networks:
+      - brasiltecpar-network
+
+#Docker Networks
+networks:
+  brasiltecpar-network:
+    driver: bridge
+
+#Volumes
+volumes:
+  brasiltecpar_data:
+    driver: local
