@@ -32,6 +32,11 @@ $ docker exec -it brasiltecpar_php composer install
 // Migrações
 $ docker exec -it brasiltecpar_php php bin/console doctrine:migrations:migrate
 ```
+OBS: Verifique no .env as portas dos serviços postgres e nginx
+```
+DOCKER_DB_PORT=5433
+DOCKER_NGINX_PORT=8080
+```
 
 ## Rotas
 - Criação de hashes:
